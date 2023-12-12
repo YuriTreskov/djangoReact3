@@ -1,0 +1,42 @@
+version: "3.7"
+
+services:
+  db:
+    # образ, из которого должен быть запущен контейнер
+    image: postgres:13.0-alpine
+    # volume и связанная с ним директория в контейнере
+    volumes:
+      - /var/lib/postgresql/data/
+    # адрес файла, где хранятся переменные окружения
+    env_file:
+      - ./.env
+  api:
+    volumes:
+      - static:/static
+    env_file:
+      - .env
+    build:
+      context: ./api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+  frontend:
+    build:
+      context: ./frontend
+    volumes:
+      - frontend:/app/build
+  nginx:
+    build:
+      context: ./nginx
+    volumes:
+      - static:/static
+      - frontend:/var/www/frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+      - frontend
+volumes:
+  static:
+  frontend:
